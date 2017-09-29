@@ -68,61 +68,73 @@ int main()
 	pcap_if_t *alldevs = NULL;
 	char errbuf[PCAP_ERRBUF_SIZE];
 
-	int offset = 0; // Çì´õÀ§Ä¡ Á¡ÇÁ °ª
+	int offset = 0; // í—¤ë”ìœ„ì¹˜ ì í”„ ê°’
 
 	pcap_if_t *d;
 	int i;
-	for (d = alldevs, i = 0; d!= NULL; d=d->next)
+	if (pcap_findalldevs(&alldevs, errbuf) < 0)
 	{
-		printf("%d¹øÂ° Device:%s\n", ++i, d->name);
+		printf("ë””ë°”ì´ìŠ¤ ì°¾ëŠ”ë° ì‹¤íŒ¨í•˜ì˜€ìŠµë‹ˆë‹¤.\n");
+		return -1;
+	}
+	else if (alldevs == NULL)
+	{
+		printf("ë””ë°”ì´ìŠ¤ê°€ ì—†ìŠµë‹ˆë‹¤.\n");
+		return -1;
+	}
+
+	for (d = alldevs, i = 0; d != NULL; d = d->next)
+	{
+		printf("%dë²ˆì§¸ Device:%s", ++i, d->name);
 		if (d->description) printf("(%s)\n", d->description);
-		else printf("À¯È¿ÇÑ µğ¹ÙÀÌ½º°¡ ¾ø½À´Ï´Ù.");
+		else printf("ìœ íš¨í•œ ë””ë°”ì´ìŠ¤ê°€ ì—†ìŠµë‹ˆë‹¤.");
 	}
 
 	int j;
-	printf("Ä¸Ã³ÇÒ ÀåÄ¡ ¹øÈ£¸¦ ÀÔ·ÂÇÏ¼¼¿ä : ");
+	printf("ìº¡ì²˜í•  ì¥ì¹˜ ë²ˆí˜¸ë¥¼ ì…ë ¥í•˜ì„¸ìš” : ");
 	scanf("%d", &j);
 	for (d = alldevs, i = 0; i < j - 1; d = d->next, i++);
 
 	//pcap_open
 	pcap_t *fp;
-	if ((fp = pcap_open_live(d->name,65536,1,20,errbuf)) == NULL)
+	if ((fp = pcap_open_live(d->name, 65536, 1, 20, errbuf)) == NULL)
 	{
 		printf("pcap_open Error!\n");
 		pcap_freealldevs(alldevs);
 		return -1;
 	}
-	printf("pcap_open ¼º°ø!\n");
+	printf("pcap_open ì„±ê³µ!\n");
 
 	struct bpf_program fcode;
-	if (pcap_compile(fp, &fcode, FILTER_RULE, 1, NULL) < 0) // ½ÇÆĞ½Ã -1¸®ÅÏ
+	if (pcap_compile(fp, &fcode, FILTER_RULE, 1, NULL) < 0) // ì‹¤íŒ¨ì‹œ -1ë¦¬í„´
 	{
 		printf("pcap_compile Error!\n");
 		pcap_freealldevs(alldevs);
 		return -1;
 	}
 
-	if (pcap_setfilter(fp, &fcode) < 0) // ½ÇÆĞ½Ã -1¸®ÅÏ
+	if (pcap_setfilter(fp, &fcode) < 0) // ì‹¤íŒ¨ì‹œ -1ë¦¬í„´
 	{
 		printf("pcap_setfilter Error!\n");
 		pcap_freealldevs(alldevs);
 		return -1;
 	}
-	pcap_freealldevs(alldevs); // Ä¸Ã³ÇÒ µğ¹ÙÀÌ½º »©°í ¸ğµç µğ¹ÙÀÌ½º ¹İÈ¯
+	pcap_freealldevs(alldevs); // ìº¡ì²˜í•  ë””ë°”ì´ìŠ¤ ë¹¼ê³  ëª¨ë“  ë””ë°”ì´ìŠ¤ ë°˜í™˜
 
 	int res;
 	struct pcap_pkthdr *header;
 	const unsigned char *pkt_data;
 
-	while ((res = pcap_next_ex(fp, &header, &pkt_data)) > 0)
+	while ((res = pcap_next_ex(fp, &header, &pkt_data)) >= 0)
 	{
+		if (res == 0) continue;
 		print_ether_header(pkt_data);
-		pkt_data += 14; // Ether_header±æÀÌ¸¸Å­ Á¡ÇÁ
+		pkt_data += 14; // Ether_headerê¸¸ì´ë§Œí¼ ì í”„
 		offset = print_ip_header(pkt_data);
-		pkt_data += offset; // Ether_header + IP_header ±æÀÌ¸¸Å­ Á¡ÇÁ
+		pkt_data += offset; // Ether_header + IP_header ê¸¸ì´ë§Œí¼ ì í”„
 		offset = print_tcp_header(pkt_data);
-		pkt_data += offset; // Ether_header + IP_header + TCP_header ±æÀÌ¸¸Å­ Á¡ÇÁ
-							// ÀÌÈÄ·Ğ µ¥ÀÌÅÍ ±¸°£
+		pkt_data += offset; // Ether_header + IP_header + TCP_header ê¸¸ì´ë§Œí¼ ì í”„
+							// ì´í›„ë¡  ë°ì´í„° êµ¬ê°„
 	}
 	return 0;
 
@@ -136,8 +148,8 @@ void print_ether_header(const unsigned char *data)
 
 	if (ether_type != 0x8000)
 	{
-		printf("IPv4°¡ ¾Æ´Õ´Ï´Ù.\n");
-		return ;
+		printf("IPv4ê°€ ì•„ë‹™ë‹ˆë‹¤.\n");
+		return;
 	}
 	printf("Src Mac : %02x%02x%02x%02x%02x%02x\n",
 		eh->ether_shost.mac_add[0],
@@ -164,7 +176,7 @@ int print_ip_header(const unsigned char *data)
 	printf("Src IP : %s\n", inet_ntoa(ih->src_add));
 	printf("Dest IP : %s\n", inet_ntoa(ih->des_add));
 
-	return ih->ip_header_length * 4; // header_length = 20 ÀÌÁö¸¸ 1ºñÆ®¸¸ »ç¿ëÇÏ±â À§ÇØ¼­ 5ÀúÀå, 4°öÇØ¼­ ÃÑ ±æÀÌÀÎ 20 ¸®ÅÏ
+	return ih->ip_header_length * 4; // header_length = 20 ì´ì§€ë§Œ 1ë¹„íŠ¸ë§Œ ì‚¬ìš©í•˜ê¸° ìœ„í•´ì„œ 5ì €ì¥, 4ê³±í•´ì„œ ì´ ê¸¸ì´ì¸ 20 ë¦¬í„´
 }
 
 int print_tcp_header(const unsigned char *data)
@@ -174,6 +186,6 @@ int print_tcp_header(const unsigned char *data)
 
 	printf("Src Port : %d\n", th->src_port);
 	printf("Dest Port : %d\n", th->des_port);
-	
+
 	return th->tcp_offset * 4;
 }
