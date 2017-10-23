@@ -85,8 +85,13 @@ int main(int argc, char **argv)
 	struct pcap_pkt_hdr *header;
 	const unsigned char *pkt_data;
 	
-	//if(argv[1]) strcat(FILTER_RULE, argv[1]); // FILTER_RULE 설정
-	//else 
+	//port설정 인자값이 있으면 port룰 설정
+	//없으면, 모든 패킷 감청
+	if (argv[1])
+	{
+		strcpy(FILTER_RULE, "port ");
+		strcat(FILTER_RULE, argv[1]); // FILTER_RULE (port)설정
+	} 
 
 
 	if (pcap_findalldevs(&alldevs, errbuf) < 0)
@@ -140,6 +145,8 @@ int main(int argc, char **argv)
 		print_ip_header(pkt_data);
 		pkt_data += TCP_HEADER_JMP;
 		print_tcp_header(pkt_data);
+		pkt_data += DATA_JMP;
+		print_data(pkt_data);
 	}
 	
 }
@@ -186,5 +193,11 @@ void print_tcp_header(const unsigned char *pkt_data)
 	
 	printf("Src Port : %d\n", ntohs(th->src_port));
 	printf("Des Port : %d\n", ntohs(th->des_port));
+	
+}
+void print_data(const unsigned char *pkt_data)
+{
+	printf("*DATA*\n");
+	printf("%s\n", pkt_data);
 	printf("====================\n\n");
 }
