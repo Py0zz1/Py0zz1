@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <winsock2.h>
 #include <string.h>
+#include <conio.h>
 
 #pragma comment (lib,"ws2_32.lib")
 #pragma comment (lib,"wpcap.lib")
@@ -140,6 +141,12 @@ int main(int argc, char **argv)
 	{
 		if (res == 0) continue;
 
+		if (kbhit())
+		{
+			printf("Pause!\n");
+			system("pause");
+			if (kbhit()) continue;
+		}
 		print_ether_header(pkt_data);
 		pkt_data += IP_HEADER_JMP;
 		print_ip_header(pkt_data);
