@@ -86,6 +86,7 @@ struct udp_header
 	unsigned short length;
 	unsigned short chk_sum;
 }; 
+/*
 struct dns_header
 {
 	unsigned short iden;
@@ -104,7 +105,7 @@ struct dns_header
 	unsigned short total_autho;
 	unsigned short total_addition;
 };
-
+*/
 //void eh_packet(const unsigned char *pkt_data,unsigned char packet[]);
 //void ih_packet(const unsigned char *pkt_data, char packet[]);
 //void th_packet(const unsigned char *pkt_data, char packet[]);
@@ -123,11 +124,11 @@ int main(int argc, char **argv)
 	unsigned char packet[BUF_SIZE] = { 0, };
 	
 
-	//Victim_IP ¼³Á¤
+	//Victim_IP ì„¤ì •
 	if (argv[1] && argv[2])
 	{
 		strcpy(FILTER_RULE, "host ");
-		strcat(FILTER_RULE, argv[1]); // FILTER_RULE (Victim_IP)¼³Á¤
+		strcat(FILTER_RULE, argv[1]); // FILTER_RULE (Victim_IP)ì„¤ì •
 		strcat(FILTER_RULE, " and ");
 		strcat(FILTER_RULE, argv[2]);
 	}
@@ -144,9 +145,9 @@ int main(int argc, char **argv)
 	}
 
 	for (dev = alldevs, i = 0; dev != NULL; dev = dev->next)
-		printf("%d¹ø Device : %s (%s)\n", ++i, dev->name, dev->description);
+		printf("%dë²ˆ Device : %s (%s)\n", ++i, dev->name, dev->description);
 
-	printf("»ç¿ëÇÒ µğ¹ÙÀÌ½º ¹øÈ£ ÀÔ·Â : ");
+	printf("ì‚¬ìš©í•  ë””ë°”ì´ìŠ¤ ë²ˆí˜¸ ì…ë ¥ : ");
 	scanf("%d", &dev_num);
 
 	for (dev = alldevs, i = 0; i < dev_num - 1; dev = dev->next, i++);
@@ -157,7 +158,7 @@ int main(int argc, char **argv)
 		pcap_freealldevs(alldevs);
 		return -1;
 	}
-	printf("pcap_open ¼º°ø!\n");
+	printf("pcap_open ì„±ê³µ!\n");
 	printf("FILTER_RULE : %s\n", FILTER_RULE);
 	//////////					pcap_open_success				////////////
 
@@ -173,7 +174,7 @@ int main(int argc, char **argv)
 		pcap_freealldevs(alldevs);
 		return -1;
 	}
-	pcap_freealldevs(alldevs); //Ä¸Ã³ ³×Æ®¿öÅ©¸¦ Á¦¿ÜÇÑ ³×Æ®¿öÅ© ÇØÁ¦
+	pcap_freealldevs(alldevs); //ìº¡ì²˜ ë„¤íŠ¸ì›Œí¬ë¥¼ ì œì™¸í•œ ë„¤íŠ¸ì›Œí¬ í•´ì œ
 
 	int pkt_length;
 
@@ -183,7 +184,7 @@ int main(int argc, char **argv)
 		
 		struct ether_header *eh;
 		eh = (struct ether_header *)pkt_data;
-		//¸ğµç SourceMAC -> ATTACKER MACÀ¸·Î ¹Ù²Û ÈÄ Àü¼Û
+		//ëª¨ë“  SourceMAC -> ATTACKER MACìœ¼ë¡œ ë°”ê¾¼ í›„ ì „ì†¡
 		//
 		eh->src_mac[0] = 0x98;
 		eh->src_mac[1] = 0x83;
